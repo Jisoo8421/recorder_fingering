@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#185d47">
+<title>리코더 운지 연습실</title>
+<style>
+  :root{color-scheme:light;--ink:#16372d;--quiet:#4c665c;--green:#18684c;--deep:#104d39;--mint:#e8f4ed;--line:#dce8e0;--paper:#fff;--wash:#f5f9f6}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.5 "Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif}
+  button,a,input{touch-action:manipulation}
+  button{font:inherit;color:inherit;cursor:pointer}
+  :focus-visible{outline:3px solid #b05c18;outline-offset:3px}
+  [hidden]{display:none!important}
+  .shell{max-width:1550px;margin:auto;padding:0 clamp(16px,3vw,46px)}
+  .top{min-height:83px;display:flex;align-items:center;justify-content:space-between;gap:16px;border-bottom:1px solid var(--line)}
+  .brand,.top-right{display:flex;align-items:center;gap:13px}
+  .mark{display:grid;place-items:center;width:45px;height:45px;border-radius:13px;background:var(--green);color:white;font-size:29px;line-height:1}
+  h1{font-size:clamp(20px,2.3vw,30px);margin:0;letter-spacing:-.07em}
+  .tag{background:var(--mint);color:var(--deep);border-radius:20px;padding:6px 13px;font-weight:700;font-size:14px;white-space:nowrap}
+  .outline{background:white;border:1px solid #cbded3;border-radius:10px;min-height:42px;padding:7px 13px;font-weight:700;white-space:nowrap}
+  .outline:hover,.note:hover{background:var(--mint)}
+  .workspace{display:grid;grid-template-columns:minmax(168px,.64fr) minmax(300px,1.66fr) minmax(350px,2fr);gap:clamp(13px,2vw,29px);padding:22px 0 14px;align-items:stretch}
+  .picker{padding-right:14px;border-right:1px solid var(--line)}
+  .picker h2,.fingering h2{margin:0;font-size:20px;letter-spacing:-.045em}
+  .group{margin-top:13px}
+  .group h3{font-size:13px;color:var(--quiet);margin:0 0 4px;font-weight:700}
+  .note{display:flex;width:100%;justify-content:space-between;align-items:center;gap:5px;border:1px solid transparent;border-radius:8px;padding:3px 9px;min-height:31px;background:white;font-weight:700;text-align:left;line-height:1.15}
+  .note span+span{font-size:12px;font-weight:600;color:var(--quiet);white-space:nowrap}
+  .note[aria-pressed="true"]{color:white;background:var(--green);border-color:var(--green)}
+  .note[aria-pressed="true"] span+span{color:#e2f4eb}
+  .score-panel{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:16px 6px;min-width:0}
+  .score-label{margin:0;color:var(--quiet);font-size:16px;font-weight:700}
+  .pitch{margin:6px 0 0;font-size:clamp(46px,6.3vw,94px);letter-spacing:-.09em;line-height:1.12}
+  .pitch-en{font-size:18px;color:var(--quiet);font-weight:700;margin:8px 0 0}
+  .score{width:min(100%,440px);height:auto;display:block;margin:4px auto 2px}
+  .directions{width:min(100%,440px);background:var(--wash);border:1px solid var(--line);border-radius:15px;text-align:left;padding:13px 18px}
+  .directions h3{font-size:15px;margin:0 0 5px;color:var(--deep)}
+  .directions p{margin:2px 0;font-size:clamp(15px,1.4vw,19px);font-weight:700;word-break:keep-all}
+  .fingering{min-width:0;border:1px solid var(--line);border-radius:20px;background:var(--wash);padding:clamp(12px,1.65vw,23px);display:flex;flex-direction:column}
+  .figure-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+  .switch{display:flex;gap:3px;padding:3px;background:white;border:1px solid var(--line);border-radius:11px}
+  .switch button{padding:6px 12px;border:0;border-radius:7px;background:transparent;white-space:nowrap;font-weight:700;font-size:14px;min-height:34px}
+  .switch button[aria-pressed="true"]{background:var(--green);color:white}
+  .figure{display:block;width:100%;height:clamp(350px,51vh,520px);margin:auto;overflow:visible}
+  .legend{display:flex;justify-content:center;flex-wrap:wrap;gap:7px 20px;margin:0;font-weight:700;color:var(--quiet);font-size:14px}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .dot{display:inline-block;width:15px;height:15px;border:2px solid var(--green);border-radius:50%;background:white}
+  .dot.filled{background:var(--green)} .dot.partial{background:linear-gradient(90deg,var(--green) 50%,white 50%)}
+  .controls{display:flex;align-items:center;justify-content:center;gap:14px 23px;flex-wrap:wrap;padding:10px 0 13px;border-top:1px solid var(--line)}
+  .play{min-width:210px;min-height:54px;border:0;border-radius:13px;background:var(--green);color:white;padding:7px 23px;font-size:21px;font-weight:800}
+  .play:hover,.play[aria-pressed="true"]{background:var(--deep)}
+  .volume{display:flex;gap:10px;align-items:center;font-weight:700;color:var(--quiet)}
+  .volume input{width:105px;accent-color:var(--green)}
+  .refs{text-align:center;color:var(--quiet);font-size:13px;padding:0 0 11px}
+  .refs a{color:var(--deep);text-underline-offset:3px;margin:0 5px}
+  .status{font-size:14px;color:#8b3c12;text-align:center;margin:0 0 8px;font-weight:700}
+  .sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  @media(max-width:900px){
+    .workspace{grid-template-columns:1fr 1.2fr;gap:14px}
+    .picker{grid-column:1/-1;border-right:0;border-bottom:1px solid var(--line);padding:0 0 10px;display:flex;align-items:start;gap:10px 16px;flex-wrap:wrap}
+    .picker h2{width:100%}
+    .group{margin-top:0}
+    .group div{display:flex;flex-wrap:wrap;gap:4px}
+    .note{width:auto;min-height:36px;background:var(--wash);padding:4px 7px}
+    .note span+span{display:none}
+    .figure{height:370px}
+  }
+  @media(max-width:590px){
+    .tag{display:none}.top{min-height:66px}.brand{gap:8px}.mark{width:36px;height:36px;font-size:23px}.outline{font-size:13px}
+    .workspace{grid-template-columns:1fr;padding-top:13px}
+    .score-panel{padding-top:5px}.score{max-width:320px}
+    .figure{height:min(106vw,390px)}.play{min-width:165px}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="top">
+    <div class="brand"><span class="mark" aria-hidden="true">♫</span><h1>리코더 운지 연습실</h1></div>
+    <div class="top-right"><span class="tag">소프라노 · 저먼식 G</span><button class="outline" id="fullscreen" type="button">⛶ 전체 화면</button></div>
+  </header>
+  <main class="workspace">
+    <nav class="picker" aria-label="연주할 음"><h2>음 고르기</h2></nav>
+    <section class="score-panel" aria-labelledby="pitch">
+      <p class="score-label">온음표 악보</p>
+      <h2 class="pitch" id="pitch" aria-live="polite">낮은 도</h2>
+      <p class="pitch-en" id="pitch-en"></p>
+      <svg class="score" id="score" viewBox="0 0 360 150" role="img"></svg>
+      <div class="directions"><h3>어떤 구멍을 막을까요?</h3><p id="thumb-text"></p><p id="front-text"></p></div>
+    </section>
+    <section class="fingering" aria-labelledby="fingering-title">
+      <div class="figure-head">
+        <h2 id="fingering-title">리코더 잡는 법</h2>
+        <div class="switch" role="group" aria-label="운지 보기 방식">
+          <button id="holes-mode" aria-pressed="true" type="button">구멍 보기</button>
+          <button id="hands-mode" aria-pressed="false" type="button">손 보기</button>
+        </div>
+      </div>
+      <svg class="figure" id="figure" viewBox="0 0 480 394" role="img"></svg>
+      <p class="legend" id="hole-legend"><span><i class="dot filled" aria-hidden="true"></i>막기</span><span><i class="dot" aria-hidden="true"></i>열기</span><span><i class="dot partial" aria-hidden="true"></i>조금 열기</span></p>
+      <p class="legend" id="hand-legend" hidden><span>초록 표시는 손가락을 대는 곳</span></p>
+    </section>
+  </main>
+  <div class="controls">
+    <button type="button" class="play" id="play" aria-pressed="false">▶ 소리 듣기</button>
+    <label class="volume">음량 <input id="volume" type="range" min="0" max="100" value="65"></label>
+  </div>
+  <p class="status" id="status" role="status" hidden></p>
+  <footer class="refs">수업 자료 <a href="https://www.yamaha.com/en/musical_instrument_guide/common/images/recorder/fingering_german.pdf" target="_blank" rel="noopener noreferrer">저먼식 운지표 ↗</a></footer>
+</div>
+<script>
+'use strict';
+
+// midi is the sounding pitch. step counts written staff positions from C4.
+// holes are ordered thumb, 1–7. 1 closes a hole, h vents the thumb,
+// and d closes only the larger opening of a paired hole.
+const groups = [
+  {title:'기본음', notes:[
+    ['낮은 도','C4',72,0,'11111111'],['레','D4',74,1,'11111110'],
+    ['미','E4',76,2,'11111100'],['파','F4',77,3,'11111000'],
+    ['솔','G4',79,4,'11110000'],['라','A4',81,5,'11100000'],
+    ['시','B4',83,6,'11000000']
+  ]},
+  {title:'높은음', notes:[
+    ['높은 도','C5',84,7,'10100000'],['높은 레','D5',86,8,'00100000'],
+    ['높은 미','E5',88,9,'h1111100'],['높은 파','F5',89,10,'h1111000'],
+    ['높은 솔','G5',91,11,'h1110000']
+  ]},
+  {title:'올림음 · 내림음', notes:[
+    ['도♯','C♯4',73,0,'1111111d','♯'],['파♯','F♯4',78,3,'11110111','♯'],
+    ['시♭','B♭4',82,6,'11011000','♭']
+  ]}
+];
+const notes = groups.flatMap(group => group.notes);
+const byId = id => document.getElementById(id);
+const picker = document.querySelector('.picker');
+const buttons = [];
+const figure = byId('figure');
+const score = byId('score');
+const playButton = byId('play');
+const volume = byId('volume');
+let selected = 0;
+let hands = false;
+
+for (const group of groups) {
+  const section = document.createElement('section');
+  section.className = 'group';
+  const label = document.createElement('h3');
+  label.textContent = group.title;
+  const row = document.createElement('div');
+  section.append(label, row);
+  for (const [name, pitch] of group.notes) {
+    const index = buttons.length;
+    const button = document.createElement('button');
+    button.className = 'note';
+    button.type = 'button';
+    button.innerHTML = '<span>' + name + '</span><span>' + pitch.replace(/[45]$/, '') + '</span>';
+    button.addEventListener('click', () => select(index));
+    row.append(button);
+    buttons.push(button);
+  }
+  picker.append(section);
+}
+
+function drawScore(name, step, accidental) {
+  const y = 122 - 9 * step;
+  const lines = [32,50,68,86,104].map(line =>
+    '<path d="M24 ' + line + 'H336"/>').join('');
+  const ledger = step <= 0 || step >= 12
+    ? '<path d="M196 ' + (step <= 0 ? 122 : 14) + 'h51" stroke-width="2"/>' : '';
+  const symbol = accidental === '♯'
+    ? '<path d="M181 -15v30m9-34v30m-14-17 18-5m-18 15 18-5" fill="none" stroke="#16372d" stroke-width="2.4"/>'
+    : accidental === '♭'
+      ? '<path d="M181 -21v31c2-2 13-8 13-14 0-6-9-5-13 1" fill="none" stroke="#16372d" stroke-width="2.7" stroke-linecap="round"/>' : '';
+  score.setAttribute('aria-label', name + ' 온음표, 높은음자리표');
+  score.innerHTML = '<g fill="none" stroke="#98b2a5" stroke-width="1.35">' + lines + ledger + '</g>' +
+    '<g fill="none" stroke="#204e3d" stroke-linecap="round" stroke-linejoin="round">' +
+    '<path stroke-width="3.7" d="M75 95C64 92 66 77 77 73 90 67 104 76 103 88 102 102 86 108 72 103 54 97 53 81 63 68 73 55 94 48 94 31 94 21 88 17 84 23 76 33 79 48 82 62l12 53c2 10-3 18-12 18-7 0-13-5-13-11"/>' +
+    '<ellipse cx="72" cy="122" rx="5.9" ry="6" fill="#204e3d" stroke="none"/></g>' +
+    '<g transform="translate(0 ' + y + ')">' + symbol +
+    '<ellipse cx="221" cy="0" rx="16" ry="8.5" fill="#18684c"/>' +
+    '<ellipse cx="221" cy="0" rx="5.9" ry="7.2" transform="rotate(-26 221 0)" fill="white"/></g>';
+}
+
+const holeY = [0,280,245,210,175,140,104,69];
+
+function holeDot(x, y, radius, state) {
+  const fill = state === '1' ? '#18684c' : state === 'h' ? 'url(#half)' : '#fff';
+  return '<circle cx="' + x + '" cy="' + y + '" r="' + radius + '" fill="' + fill + '" stroke="#21674f" stroke-width="1.8"/>';
+}
+
+function frontDots(hole, state) {
+  const y = holeY[hole];
+  if (hole < 6) return holeDot(240,y,9.2,state);
+  const smallX = hole === 7 ? 250 : 229;
+  const largeX = hole === 7 ? 235 : 244;
+  return holeDot(largeX,y,5.9,state === 'd' ? '1' : state) +
+    holeDot(smallX,y,4.3,state === 'd' ? '0' : state);
+}
+
+function handPalm(side, y) {
+  const transform = side === 'left' ? 'translate(480 0) scale(-1 1)' : '';
+  return '<g transform="' + transform + '"><g transform="translate(0 ' + y + ')">' +
+    '<path d="M86-14C107-19 116-31 137-41c12-6 26-6 41-2 16 4 31 15 36 29 7 18 2 34-12 46-14 11-33 15-50 10C127 35 109 32 86 34Z" fill="url(#skin)" stroke="#a96851" stroke-width="1"/>' +
+    '<path d="M157 29c12 1 27 0 40-9 7-5 13-10 24-13 11-3 20 2 20 9 0 8-8 12-19 14-12 3-23 11-38 12-11 1-22-2-27-13Z" fill="url(#finger)" stroke="#ad6d55" stroke-width="1"/>' +
+    '<path d="M84-17c11-2 21-5 34-13l17 68c-19-4-35-3-51 0l-20-1v-52Z" fill="url(#sleeve)" stroke="#749789" stroke-width="1"/>' +
+    '</g></g>';
+}
+
+function digit(side, y, baseY, target, scale = 1, covered = false) {
+  const transform = side === 'left' ? 'translate(480 0) scale(-1 1)' : '';
+  const offset = baseY - y;
+  return '<g transform="' + transform + '"><g transform="translate(' + (target - 240) + ' ' + y + ')">' +
+    '<path d="M' + (172 + 240 - target) + ' ' + (offset - 9*scale) +
+    ' C191 ' + (offset - 15*scale) + ' 205 ' + (-14*scale) + ' 219 ' + (-12*scale) +
+    ' Q240 ' + (-14*scale) + ' 249 ' + (-7*scale) + ' C258 ' + (-1*scale) + ' 253 ' + (9*scale) + ' 243 ' + (10*scale) +
+    ' C230 ' + (12*scale) + ' 223 ' + (5*scale) + ' 210 ' + (9*scale) +
+    ' L' + (172 + 240 - target) + ' ' + (offset + 10*scale) +
+    ' Q' + (161 + 240 - target) + ' ' + offset + ' ' + (172 + 240 - target) + ' ' + (offset - 9*scale) +
+    'Z" fill="url(#finger)" stroke="#a76750" stroke-width="1"/>' +
+    '<path d="M236 ' + (-6*scale) + 'q8 -4 13 1q4 4-2 8q-6 3-11 0Z" fill="#f8cebb" stroke="#bc806c" stroke-width=".75"/>' +
+    (covered ? '<circle cx="237" cy="0" r="4" fill="#237252" stroke="#fff" stroke-width="1.15"/>' : '') +
+    '</g></g>';
+}
+
+function drawFigure(name, states) {
+  const defs = '<defs>' +
+    '<linearGradient id="body"><stop stop-color="#d6c5a4"/><stop offset=".26" stop-color="#fff6e3"/><stop offset=".55" stop-color="#f4e7c8"/><stop offset=".83" stop-color="#e2d0ac"/><stop offset="1" stop-color="#beaa87"/></linearGradient>' +
+    '<linearGradient id="skin" x2=".12" y2="1"><stop stop-color="#f9d8c3"/><stop offset=".56" stop-color="#efb697"/><stop offset="1" stop-color="#c78568"/></linearGradient>' +
+    '<linearGradient id="finger" x2=".15" y2="1"><stop stop-color="#ffe0c9"/><stop offset=".5" stop-color="#f0b99b"/><stop offset="1" stop-color="#ce8c71"/></linearGradient>' +
+    '<linearGradient id="sleeve" x2=".2" y2="1"><stop stop-color="#d6e8df"/><stop offset="1" stop-color="#8eafa0"/></linearGradient>' +
+    '<linearGradient id="half"><stop offset=".5" stop-color="#18684c"/><stop offset=".5" stop-color="#fff"/></linearGradient></defs>';
+  const body = '<g fill="url(#body)" stroke="#a39170" stroke-width="1.45">' +
+    '<path d="M211 32q29-14 58 0c-13 11-12 22-10 31l-2 37-3 36 3 168 4 12-1 48q-1 16-20 16t-20-16l-1-48 4-12 3-168-3-36-2-37c2-9 3-20-10-31Z"/>' +
+    '<rect x="218" y="51" width="44" height="12" rx="5"/><rect x="221" y="114" width="38" height="10" rx="4"/>' +
+    '<rect x="218" y="304" width="44" height="14" rx="5"/>' +
+    '<path d="M231 339h18l-2 14h-14Z" fill="#8e7d5e"/><path d="M236 347h8l3 5h-14Z" fill="#f9ebcc" stroke="none"/></g>';
+  const dots = holeY.slice(1).map((_, index) => frontDots(index + 1,states[index+1])).join('');
+  const numbers = holeY.slice(1).map((y,index) => '<text x="200" y="' + (y+5) + '">' + (index+1) + '</text>').join('');
+  const palms = hands ? handPalm('right',120) + handPalm('left',245) : '';
+  const fingerRoots = [0,276,252,229,151,128,106,87];
+  const fingers = hands ? [7,6,5,4,3,2,1].map(hole => {
+    const state = states[hole];
+    const side = hole <= 3 ? 'left' : 'right';
+    const target = state === 'd' ? 231 : state === '1' ? 242 : 197;
+    const bend = state === '0' ? (hole <= 3 ? 8 : -7) : 0;
+    return digit(side,holeY[hole]+bend,fingerRoots[hole],target,hole === 7 ? .78 : 1,state !== '0');
+  }).join('') + digit('left',193,218,185,.72) : '';
+  const thumbLabel = { '0':'열기','1':'막기',h:'조금 열기' }[states[0]];
+  const pairedOpening = hands && states[7] === 'd' ? holeDot(250,69,4.3,'0') : '';
+  const inset = '<path d="M142 332 220 292" fill="none" stroke="#8bac9b" stroke-width="1.4" stroke-dasharray="4 4"/>' +
+    '<rect x="35" y="312" width="114" height="66" rx="12" fill="#fff" stroke="#cedfd4"/>' +
+    '<text x="92" y="331" font-size="13" font-weight="700" text-anchor="middle" fill="#245845">0 · 뒤 엄지</text>' +
+    holeDot(58,353,8.4,states[0]) +
+    '<text x="75" y="358" font-size="14" font-weight="700" fill="#245845">' + thumbLabel + '</text>';
+  const handLabels = hands ? '<g fill="#245845" font-size="15" font-weight="700" text-anchor="middle"><text x="111" y="61">오른손</text><text x="369" y="206">왼손</text></g>' : '';
+  figure.setAttribute('aria-label', name + (hands ? ' 손 모양으로 보는 운지, 취구는 아래' : ' 구멍 색으로 보는 운지, 취구는 아래'));
+  figure.innerHTML = defs + palms + body + dots + fingers + pairedOpening + inset + handLabels +
+    (hands ? '' : '<g fill="#355d4d" font-size="15" font-weight="700" text-anchor="middle">' + numbers + '</g>') +
+    '<path d="M264 363h18" stroke="#8bac9b"/><text x="290" y="368" fill="#355d4d" font-size="14" font-weight="700">취구</text>';
+}
+
+function render() {
+  const [name, written, , step, states, accidental] = notes[selected];
+  byId('pitch').textContent = name;
+  byId('pitch-en').textContent = written + ' · 기보음';
+  byId('thumb-text').textContent = ({
+    '1':'뒤 0번은 왼손 엄지로 막아요.',
+    '0':'뒤 0번은 왼손 엄지를 떼어 열어요.',
+    h:'뒤 0번은 왼손 엄지로 막되 작은 틈을 남겨요.'
+  })[states[0]];
+  const closed = [...states].flatMap((state,index) => index && state === '1' ? [index] : []);
+  byId('front-text').textContent = '앞 ' + closed.join('·') + '번을 막아요.' +
+    (states.includes('d') ? ' 7번은 큰 구멍만 막아요.' : '');
+  buttons.forEach((button,index) => button.setAttribute('aria-pressed',index === selected));
+  drawScore(name,step,accidental);
+  renderFingering();
+}
+
+function renderFingering() {
+  const [name,,,,states] = notes[selected];
+  byId('holes-mode').setAttribute('aria-pressed',!hands);
+  byId('hands-mode').setAttribute('aria-pressed',hands);
+  byId('hole-legend').hidden = hands;
+  byId('hand-legend').hidden = !hands;
+  drawFigure(name,states);
+}
+
+function select(index) {
+  if (index === selected) return;
+  stopAudio();
+  selected = index;
+  render();
+}
+
+byId('holes-mode').addEventListener('click',() => { hands = false; renderFingering(); });
+byId('hands-mode').addEventListener('click',() => { hands = true; renderFingering(); });
+picker.addEventListener('keydown', event => {
+  const offsets = {ArrowUp:-1,ArrowLeft:-1,ArrowDown:1,ArrowRight:1};
+  if (!(event.key in offsets) || !buttons.includes(event.target)) return;
+  event.preventDefault();
+  const index = (buttons.indexOf(event.target) + offsets[event.key] + buttons.length) % buttons.length;
+  select(index);
+  buttons[index].focus();
+});
+
+function message(text = '') {
+  byId('status').textContent = text;
+  byId('status').hidden = !text;
+}
+
+byId('fullscreen').addEventListener('click',async () => {
+  try {
+    if (document.fullscreenElement) await document.exitFullscreen();
+    else await document.documentElement.requestFullscreen();
+    message();
+  } catch {
+    message('브라우저의 전체 화면 기능을 사용해 주세요. Windows에서는 F11 키를 누르세요.');
+  }
+});
+document.addEventListener('fullscreenchange',() => {
+  byId('fullscreen').textContent = document.fullscreenElement ? '⛶ 전체 화면 닫기' : '⛶ 전체 화면';
+});
+
+let context;
+let output;
+let active;
+let playbackRequest = 0;
+const samples = new Map();
+
+function setPlaying(playing) {
+  playButton.textContent = playing ? '■ 소리 멈추기' : '▶ 소리 듣기';
+  playButton.setAttribute('aria-pressed',playing);
+}
+
+function stopAudio() {
+  playbackRequest++;
+  if (active) {
+    const now = context.currentTime;
+    active.envelope.gain.setTargetAtTime(0,now,.009);
+    active.source.stop(now + .05);
+    active = null;
+  }
+  setPlaying(false);
+}
+
+function makeRecorderSound(midi) {
+  if (samples.has(midi)) return samples.get(midi);
+  const rate = context.sampleRate;
+  const length = Math.round(1.65 * rate);
+  const buffer = context.createBuffer(1,length,rate);
+  const data = buffer.getChannelData(0);
+  const frequency = 440 * 2 ** ((midi-69)/12);
+  const tau = 2 * Math.PI;
+  let phase = 0;
+  let air = 0;
+  let seed = 513;
+  for (let i = 0; i < length; i++) {
+    const t = i / rate;
+    const attack = Math.min(1,t/.064);
+    const release = Math.min(1,(length-i)/rate/.12);
+    const attackAir = Math.exp(-t/.045);
+    const pitch = frequency * (1 - .012*attackAir + .0012*Math.sin(tau*4.2*t));
+    phase += tau*pitch/rate;
+    seed = (Math.imul(seed,1664525) + 1013904223) >>> 0;
+    air += .20 * (seed/2147483648 - 1 - air);
+    const tone = .79*Math.sin(phase) + .16*Math.sin(phase*2+.2) +
+      .07*Math.sin(phase*3+.8) + .025*Math.sin(phase*4+.9);
+    data[i] = .7 * attack * release *
+      (tone*(.94+.04*Math.sin(tau*3.6*t)) + air*(.055+.22*attackAir));
+  }
+  samples.set(midi,buffer);
+  return buffer;
+}
+
+playButton.addEventListener('click',async () => {
+  if (active) { stopAudio(); return; }
+  const request = ++playbackRequest;
+  try {
+    if (!context) {
+      const Audio = window.AudioContext || window.webkitAudioContext;
+      context = new Audio();
+      output = context.createGain();
+      output.gain.value = Number(volume.value)/100;
+      output.connect(context.destination);
+    }
+    if (context.state !== 'running') await context.resume();
+    if (request !== playbackRequest) return;
+    const source = context.createBufferSource();
+    const envelope = context.createGain();
+    source.buffer = makeRecorderSound(notes[selected][2]);
+    source.connect(envelope).connect(output);
+    source.onended = () => {
+      source.disconnect();
+      envelope.disconnect();
+      if (active?.source === source) {
+        active = null;
+        setPlaying(false);
+      }
+    };
+    active = {source,envelope};
+    source.start();
+    setPlaying(true);
+    message();
+  } catch {
+    stopAudio();
+    message('소리를 재생할 수 없습니다. Chrome 또는 Edge에서 파일을 열어 주세요.');
+  }
+});
+
+volume.addEventListener('input',() => {
+  if (output) output.gain.setTargetAtTime(Number(volume.value)/100,context.currentTime,.02);
+});
+
+render();
+</script>
+</body>
+</html>
